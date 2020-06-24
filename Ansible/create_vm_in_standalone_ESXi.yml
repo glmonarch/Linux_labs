@@ -1,0 +1,44 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    vc_name: bulldog-esxi01.couplink.local
+    myuser: glmonarch
+  vars_prompt:
+#   - name: myuser
+#     prompt: Enter the UserName
+#     private: no
+   - name: mypass
+     prompt: Enter the Password for vCenter/ESXi user
+#   - name: vc_name
+#     prompt: Enter the vCenter/ESXi HostName
+#     private: no
+   - name: guest_name
+     prompt: Enter the Guest VM Name
+     private: no
+  remote_user: root
+  tasks:
+   - name: Create
+     delegate_to: localhost
+     vmware_guest:
+       hostname: '{{vc_name}}'
+       username: '{{myuser}}'
+       password: '{{mypass}}'
+       validate_certs: no
+       folder: ha-datacenter/vm
+       name: '{{guest_name}}'
+       state: poweredon
+       disk:
+         - size_gb: 10
+           type: thin
+           datastore: datastore-main
+           disk_mode: persistent
+       networks:
+         - name: LocalLAN
+           state: new
+           device_type: vmxnet3
+       hardware:
+         memory_mb: 2048
+         num_cpus: 2
+       guest_id: centos64Guest
